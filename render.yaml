@@ -1,0 +1,22 @@
+databases:
+  - name: abhi-dance-studio-db
+    plan: free
+    databaseName: abhi_dance_studio
+    user: abhi
+
+services:
+  - type: web
+    name: abhi-dance-studio
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run migrate && npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: abhi-dance-studio-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
