@@ -4,6 +4,7 @@ import AttendanceCard from "../components/AttendanceCard.jsx";
 import SessionCostsCard from "../components/SessionCostsCard.jsx";
 import { useClasses, useStudents } from "../lib/useRoster.js";
 import { useAttendance, useSetAttendance, usePendingSyncCount } from "../lib/useAttendance.js";
+import { mostRecentDateForWeekday } from "../lib/sessionDate.js";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -40,6 +41,12 @@ export default function Today() {
     [attendance]
   );
 
+  function selectClass(classId) {
+    setSelectedClassId(classId);
+    const cls = (classes || []).find((c) => c.id === classId);
+    if (cls) setDate(mostRecentDateForWeekday(cls.day_of_week));
+  }
+
   function markAllPresent() {
     classStudents.forEach((s) => {
       if (!presentSet.has(s.id)) setAttendance(s.id, true);
@@ -73,7 +80,7 @@ export default function Today() {
       )}
 
       <div className="mt-3">
-        <ClassChips classes={classes} selectedId={selectedClassId} onSelect={setSelectedClassId} />
+        <ClassChips classes={classes} selectedId={selectedClassId} onSelect={selectClass} />
       </div>
 
       <div className="flex items-center justify-between px-4 mt-3">
