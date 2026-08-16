@@ -6,11 +6,13 @@ export default function RatesCard() {
   const updateSettings = useUpdateSettings();
   const [editing, setEditing] = useState(false);
   const [junior, setJunior] = useState("");
+  const [intermediate, setIntermediate] = useState("");
   const [senior, setSenior] = useState("");
   const [error, setError] = useState("");
 
   function startEdit() {
     setJunior(String(settings.junior_rate));
+    setIntermediate(String(settings.intermediate_rate));
     setSenior(String(settings.senior_rate));
     setError("");
     setEditing(true);
@@ -18,13 +20,18 @@ export default function RatesCard() {
 
   function save() {
     const jr = Number(junior);
+    const ir = Number(intermediate);
     const sr = Number(senior);
-    if (!Number.isFinite(jr) || jr <= 0 || !Number.isFinite(sr) || sr <= 0) {
+    if (
+      !Number.isFinite(jr) || jr <= 0 ||
+      !Number.isFinite(ir) || ir <= 0 ||
+      !Number.isFinite(sr) || sr <= 0
+    ) {
       setError("Enter valid rates");
       return;
     }
     updateSettings.mutate(
-      { junior_rate: jr, senior_rate: sr },
+      { junior_rate: jr, intermediate_rate: ir, senior_rate: sr },
       { onSuccess: () => setEditing(false), onError: (e) => setError(e.message) }
     );
   }
@@ -39,6 +46,10 @@ export default function RatesCard() {
             <div>
               <p className="text-xs text-plum-400 uppercase tracking-wide">Junior rate</p>
               <p className="font-display text-xl font-semibold">£{Number(settings.junior_rate).toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-plum-400 uppercase tracking-wide">Intermediate rate</p>
+              <p className="font-display text-xl font-semibold">£{Number(settings.intermediate_rate).toFixed(2)}</p>
             </div>
             <div>
               <p className="text-xs text-plum-400 uppercase tracking-wide">Senior rate</p>
@@ -62,6 +73,16 @@ export default function RatesCard() {
                 inputMode="decimal"
                 value={junior}
                 onChange={(e) => setJunior(e.target.value)}
+                className="mt-1 w-full min-h-[44px] rounded-xl border border-plum-100 px-3"
+              />
+            </label>
+            <label className="flex-1 text-sm">
+              Intermediate £
+              <input
+                type="number"
+                inputMode="decimal"
+                value={intermediate}
+                onChange={(e) => setIntermediate(e.target.value)}
                 className="mt-1 w-full min-h-[44px] rounded-xl border border-plum-100 px-3"
               />
             </label>

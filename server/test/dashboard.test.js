@@ -14,7 +14,7 @@ describe("dashboard", () => {
   });
 
   it("summary totals match hand-computed fixtures", async () => {
-    await agent.put("/api/settings").send({ junior_rate: 5, senior_rate: 5 });
+    await agent.put("/api/settings").send({ junior_rate: 5, intermediate_rate: 5, senior_rate: 5 });
     const cls = await createClass(agent);
     const s1 = await createStudent(agent, cls.id);
     const s2 = await createStudent(agent, cls.id);
@@ -35,7 +35,7 @@ describe("dashboard", () => {
   });
 
   it("aggregates per-class headcount/sessions/billed for a given month", async () => {
-    await agent.put("/api/settings").send({ junior_rate: 5, senior_rate: 5 });
+    await agent.put("/api/settings").send({ junior_rate: 5, intermediate_rate: 5, senior_rate: 5 });
     const clsA = await createClass(agent, { name: "A" });
     const clsB = await createClass(agent, { name: "B" });
     const s1 = await createStudent(agent, clsA.id);

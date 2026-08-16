@@ -14,7 +14,9 @@ async function resetDb() {
   await client.query(
     "TRUNCATE classes, students, attendance_records, payments, session_outgoings RESTART IDENTITY CASCADE"
   );
-  await client.query("UPDATE settings SET junior_rate = 5.00, senior_rate = 7.00 WHERE id = 1");
+  await client.query(
+    "UPDATE settings SET junior_rate = 5.00, intermediate_rate = 8.00, senior_rate = 7.00 WHERE id = 1"
+  );
 }
 
 // Returns a Supertest agent that's authenticated for the rest of the test

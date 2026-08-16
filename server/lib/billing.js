@@ -14,7 +14,11 @@ async function billingRows({ month } = {}) {
            s.class_id, c.name AS class_name,
            to_char(ar.session_date, 'YYYY-MM') AS month,
            COUNT(ar.id)::int AS sessions,
-           CASE WHEN s.level = 'junior' THEN settings.junior_rate ELSE settings.senior_rate END AS rate,
+           CASE s.level
+             WHEN 'junior' THEN settings.junior_rate
+             WHEN 'intermediate' THEN settings.intermediate_rate
+             ELSE settings.senior_rate
+           END AS rate,
            COALESCE(p.paid, false) AS paid,
            p.paid_date
     FROM attendance_records ar
@@ -24,7 +28,8 @@ async function billingRows({ month } = {}) {
     LEFT JOIN payments p ON p.student_id = s.id AND p.month = to_char(ar.session_date, 'YYYY-MM')
     ${where}
     GROUP BY s.id, s.name, s.level, s.parent_phone, s.class_id, c.name,
-             to_char(ar.session_date, 'YYYY-MM'), settings.junior_rate, settings.senior_rate, p.paid, p.paid_date
+             to_char(ar.session_date, 'YYYY-MM'), settings.junior_rate, settings.intermediate_rate,
+             settings.senior_rate, p.paid, p.paid_date
     ORDER BY month, class_name NULLS LAST, s.name
     `,
     params

@@ -33,7 +33,7 @@ export default function StudentForm({ initial, onSave, onCancel, saving }) {
         className="w-full min-h-[44px] rounded-xl border border-plum-100 px-3"
       />
       <div className="flex gap-2">
-        {["junior", "senior"].map((lvl) => (
+        {["junior", "intermediate", "senior"].map((lvl) => (
           <button
             key={lvl}
             type="button"

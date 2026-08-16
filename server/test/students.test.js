@@ -14,15 +14,18 @@ describe("students", () => {
   });
 
   it("resolves rate from settings by level", async () => {
-    await agent.put("/api/settings").send({ junior_rate: 6, senior_rate: 9 });
+    await agent.put("/api/settings").send({ junior_rate: 6, intermediate_rate: 8, senior_rate: 9 });
     const cls = await createClass(agent);
     await createStudent(agent, cls.id, { name: "Junior Jo", level: "junior" });
+    await createStudent(agent, cls.id, { name: "Intermediate Ivy", level: "intermediate" });
     await createStudent(agent, cls.id, { name: "Senior Sam", level: "senior" });
 
     const res = await agent.get("/api/students");
     const jo = res.body.find((s) => s.name === "Junior Jo");
+    const ivy = res.body.find((s) => s.name === "Intermediate Ivy");
     const sam = res.body.find((s) => s.name === "Senior Sam");
     expect(Number(jo.rate)).toBe(6);
+    expect(Number(ivy.rate)).toBe(8);
     expect(Number(sam.rate)).toBe(9);
   });
 
@@ -43,7 +46,7 @@ describe("students", () => {
   });
 
   it("computes attendance history month totals correctly", async () => {
-    await agent.put("/api/settings").send({ junior_rate: 5, senior_rate: 7 });
+    await agent.put("/api/settings").send({ junior_rate: 5, intermediate_rate: 8, senior_rate: 7 });
     const cls = await createClass(agent);
     const student = await createStudent(agent, cls.id, { level: "junior" });
 

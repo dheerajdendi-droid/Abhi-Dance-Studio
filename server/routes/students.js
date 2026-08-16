@@ -9,7 +9,9 @@ function validateStudentInput(body, { partial = false } = {}) {
     if (!name || !name.trim()) return "Student name is required";
   }
   if (!partial || level !== undefined) {
-    if (level !== "junior" && level !== "senior") return "Level must be junior or senior";
+    if (level !== "junior" && level !== "intermediate" && level !== "senior") {
+      return "Level must be junior, intermediate, or senior";
+    }
   }
   if (parent_phone && !/^[+\d][\d\s()-]{5,20}$/.test(parent_phone)) {
     return "Parent phone number looks invalid";
@@ -22,7 +24,11 @@ router.get("/", async (req, res) => {
   const { rows } = await pool.query(
     `
     SELECT s.*,
-      CASE WHEN s.level = 'junior' THEN settings.junior_rate ELSE settings.senior_rate END AS rate,
+      CASE s.level
+        WHEN 'junior' THEN settings.junior_rate
+        WHEN 'intermediate' THEN settings.intermediate_rate
+        ELSE settings.senior_rate
+      END AS rate,
       c.name AS class_name, c.day_of_week AS class_day, c.time AS class_time
     FROM students s
     CROSS JOIN settings
@@ -81,7 +87,12 @@ router.delete("/:id", async (req, res) => {
 router.get("/:id/history", async (req, res) => {
   const studentRes = await pool.query(
     `
-    SELECT s.*, CASE WHEN s.level = 'junior' THEN settings.junior_rate ELSE settings.senior_rate END AS rate
+    SELECT s.*,
+      CASE s.level
+        WHEN 'junior' THEN settings.junior_rate
+        WHEN 'intermediate' THEN settings.intermediate_rate
+        ELSE settings.senior_rate
+      END AS rate
     FROM students s CROSS JOIN settings WHERE s.id = $1
     `,
     [req.params.id]

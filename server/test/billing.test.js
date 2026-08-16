@@ -14,7 +14,7 @@ describe("billing", () => {
   });
 
   it("computes sessions × rate and groups by class", async () => {
-    await agent.put("/api/settings").send({ junior_rate: 5, senior_rate: 8 });
+    await agent.put("/api/settings").send({ junior_rate: 5, intermediate_rate: 6, senior_rate: 8 });
     const cls = await createClass(agent, { name: "Juniors" });
     const student = await createStudent(agent, cls.id, { level: "junior" });
 
