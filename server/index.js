@@ -13,7 +13,15 @@ app.use(express.json());
 
 app.use(
   session({
-    store: new pgSession({ pool, tableName: "user_sessions", createTableIfMissing: true }),
+    store: new pgSession({
+      pool,
+      tableName: "user_sessions",
+      createTableIfMissing: true,
+      // On Vercel this runs as a serverless function — a dangling setInterval
+      // from connect-pg-simple's default pruning doesn't behave reliably
+      // across invocations there, so it's disabled only in that environment.
+      pruneSessionInterval: process.env.VERCEL ? false : undefined,
+    }),
     secret: process.env.SESSION_SECRET || "dev-secret-change-me",
     resave: false,
     saveUninitialized: false,
