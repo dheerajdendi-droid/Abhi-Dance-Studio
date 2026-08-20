@@ -83,16 +83,23 @@ export default function Trends() {
         </div>
       )}
 
-      <div className="mx-4 mt-4 bg-white rounded-2xl shadow-sm p-3" style={{ height: 260 }}>
+      <div className="mx-4 mt-4 bg-white rounded-2xl shadow-sm p-3" style={{ height: 290 }}>
         {classesLoading ? (
           <p className="text-plum-400 p-3">Loading…</p>
         ) : chartData.length === 0 ? (
           <p className="text-plum-400 p-3">No classes yet.</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 24 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F5EBDD" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#8A4A73" }} interval={0} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 11, fill: "#8A4A73" }}
+                interval={0}
+                angle={-35}
+                textAnchor="end"
+                height={50}
+              />
               <YAxis tick={{ fontSize: 11, fill: "#8A4A73" }} allowDecimals={false} />
               <Tooltip
                 formatter={(value) => metricConfig.format(value)}
