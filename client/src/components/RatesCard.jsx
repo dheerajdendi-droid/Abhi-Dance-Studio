@@ -8,12 +8,14 @@ export default function RatesCard() {
   const [junior, setJunior] = useState("");
   const [intermediate, setIntermediate] = useState("");
   const [senior, setSenior] = useState("");
+  const [advanced, setAdvanced] = useState("");
   const [error, setError] = useState("");
 
   function startEdit() {
     setJunior(String(settings.junior_rate));
     setIntermediate(String(settings.intermediate_rate));
     setSenior(String(settings.senior_rate));
+    setAdvanced(String(settings.advanced_rate));
     setError("");
     setEditing(true);
   }
@@ -22,16 +24,18 @@ export default function RatesCard() {
     const jr = Number(junior);
     const ir = Number(intermediate);
     const sr = Number(senior);
+    const ar = Number(advanced);
     if (
       !Number.isFinite(jr) || jr <= 0 ||
       !Number.isFinite(ir) || ir <= 0 ||
-      !Number.isFinite(sr) || sr <= 0
+      !Number.isFinite(sr) || sr <= 0 ||
+      !Number.isFinite(ar) || ar <= 0
     ) {
       setError("Enter valid rates");
       return;
     }
     updateSettings.mutate(
-      { junior_rate: jr, intermediate_rate: ir, senior_rate: sr },
+      { junior_rate: jr, intermediate_rate: ir, senior_rate: sr, advanced_rate: ar },
       { onSuccess: () => setEditing(false), onError: (e) => setError(e.message) }
     );
   }
@@ -54,6 +58,10 @@ export default function RatesCard() {
             <div>
               <p className="text-xs text-plum-400 uppercase tracking-wide">Senior rate</p>
               <p className="font-display text-xl font-semibold">£{Number(settings.senior_rate).toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-plum-400 uppercase tracking-wide">Advanced rate</p>
+              <p className="font-display text-xl font-semibold">£{Number(settings.advanced_rate).toFixed(2)}</p>
             </div>
           </div>
           <button
@@ -93,6 +101,16 @@ export default function RatesCard() {
                 inputMode="decimal"
                 value={senior}
                 onChange={(e) => setSenior(e.target.value)}
+                className="mt-1 w-full min-h-[44px] rounded-xl border border-plum-100 px-3"
+              />
+            </label>
+            <label className="flex-1 text-sm">
+              Advanced £
+              <input
+                type="number"
+                inputMode="decimal"
+                value={advanced}
+                onChange={(e) => setAdvanced(e.target.value)}
                 className="mt-1 w-full min-h-[44px] rounded-xl border border-plum-100 px-3"
               />
             </label>

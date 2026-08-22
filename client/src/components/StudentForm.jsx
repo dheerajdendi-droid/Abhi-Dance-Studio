@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LEVELS } from "../lib/levels.js";
 
 export default function StudentForm({ initial, onSave, onCancel, saving }) {
   const [name, setName] = useState(initial?.name || "");
@@ -33,7 +34,7 @@ export default function StudentForm({ initial, onSave, onCancel, saving }) {
         className="w-full min-h-[44px] rounded-xl border border-plum-100 px-3"
       />
       <div className="flex gap-2">
-        {["junior", "intermediate", "senior"].map((lvl) => (
+        {LEVELS.map((lvl) => (
           <button
             key={lvl}
             type="button"
