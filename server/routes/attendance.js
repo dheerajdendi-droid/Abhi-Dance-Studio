@@ -23,8 +23,17 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "student_id, class_id and session_date are required" });
   }
   await pool.query(
-    `INSERT INTO attendance_records (student_id, class_id, session_date)
-     VALUES ($1, $2, $3)
+    `INSERT INTO attendance_records (student_id, class_id, session_date, rate_applied, tier_label)
+     SELECT $1, $2, $3,
+       CASE s.level
+         WHEN 'junior' THEN settings.junior_rate
+         WHEN 'intermediate' THEN settings.intermediate_rate
+         WHEN 'senior' THEN settings.senior_rate
+         ELSE settings.advanced_rate
+       END,
+       s.level
+     FROM students s CROSS JOIN settings
+     WHERE s.id = $1
      ON CONFLICT (student_id, session_date) DO NOTHING`,
     [student_id, class_id, session_date]
   );
@@ -48,10 +57,20 @@ router.post("/bulk-mark", async (req, res) => {
   }
   if (student_ids.length === 0) return res.json({ presentStudentIds: [] });
 
-  const values = student_ids.map((_, i) => `($1, $2, $${i + 3})`).join(", ");
+  const values = student_ids.map((_, i) => `($${i + 3}::int)`).join(", ");
   await pool.query(
-    `INSERT INTO attendance_records (class_id, session_date, student_id)
-     VALUES ${values}
+    `INSERT INTO attendance_records (student_id, class_id, session_date, rate_applied, tier_label)
+     SELECT v.student_id, $1, $2,
+       CASE s.level
+         WHEN 'junior' THEN settings.junior_rate
+         WHEN 'intermediate' THEN settings.intermediate_rate
+         WHEN 'senior' THEN settings.senior_rate
+         ELSE settings.advanced_rate
+       END,
+       s.level
+     FROM (VALUES ${values}) AS v(student_id)
+     JOIN students s ON s.id = v.student_id
+     CROSS JOIN settings
      ON CONFLICT (student_id, session_date) DO NOTHING`,
     [class_id, session_date, ...student_ids]
   );

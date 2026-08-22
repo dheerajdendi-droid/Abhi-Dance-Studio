@@ -9,8 +9,8 @@ function validateStudentInput(body, { partial = false } = {}) {
     if (!name || !name.trim()) return "Student name is required";
   }
   if (!partial || level !== undefined) {
-    if (level !== "junior" && level !== "intermediate" && level !== "senior") {
-      return "Level must be junior, intermediate, or senior";
+    if (level !== "junior" && level !== "intermediate" && level !== "senior" && level !== "advanced") {
+      return "Level must be junior, intermediate, senior, or advanced";
     }
   }
   if (parent_phone && !/^[+\d][\d\s()-]{5,20}$/.test(parent_phone)) {
@@ -27,7 +27,8 @@ router.get("/", async (req, res) => {
       CASE s.level
         WHEN 'junior' THEN settings.junior_rate
         WHEN 'intermediate' THEN settings.intermediate_rate
-        ELSE settings.senior_rate
+        WHEN 'senior' THEN settings.senior_rate
+        ELSE settings.advanced_rate
       END AS rate,
       c.name AS class_name, c.day_of_week AS class_day, c.time AS class_time
     FROM students s
@@ -91,7 +92,8 @@ router.get("/:id/history", async (req, res) => {
       CASE s.level
         WHEN 'junior' THEN settings.junior_rate
         WHEN 'intermediate' THEN settings.intermediate_rate
-        ELSE settings.senior_rate
+        WHEN 'senior' THEN settings.senior_rate
+        ELSE settings.advanced_rate
       END AS rate
     FROM students s CROSS JOIN settings WHERE s.id = $1
     `,
@@ -100,15 +102,20 @@ router.get("/:id/history", async (req, res) => {
   const student = studentRes.rows[0];
   if (!student) return res.status(404).json({ error: "Student not found" });
 
+  // Grouped by (month, rate_applied) so a mid-month tier change shows as
+  // separate lines instead of being averaged into — or overwritten by —
+  // the student's current rate.
   const attendanceRes = await pool.query(
     `
     SELECT to_char(session_date, 'YYYY-MM') AS month,
+           tier_label,
+           rate_applied AS rate,
            COUNT(*)::int AS sessions,
            array_agg(to_char(session_date, 'YYYY-MM-DD') ORDER BY session_date) AS dates
     FROM attendance_records
     WHERE student_id = $1
-    GROUP BY month
-    ORDER BY month DESC
+    GROUP BY month, tier_label, rate_applied
+    ORDER BY month DESC, rate_applied
     `,
     [req.params.id]
   );
@@ -119,17 +126,34 @@ router.get("/:id/history", async (req, res) => {
   );
   const paymentsByMonth = Object.fromEntries(paymentsRes.rows.map((p) => [p.month, p]));
 
-  const months = attendanceRes.rows.map((row) => {
-    const payment = paymentsByMonth[row.month];
-    return {
-      month: row.month,
+  const monthsByKey = new Map();
+  for (const row of attendanceRes.rows) {
+    if (!monthsByKey.has(row.month)) {
+      const payment = paymentsByMonth[row.month];
+      monthsByKey.set(row.month, {
+        month: row.month,
+        lines: [],
+        sessions: 0,
+        amountOwed: 0,
+        dates: [],
+        paid: !!(payment && payment.paid),
+        paidDate: payment ? payment.paid_date : null,
+      });
+    }
+    const entry = monthsByKey.get(row.month);
+    const lineAmount = Number((row.sessions * row.rate).toFixed(2));
+    entry.lines.push({
+      tierLabel: row.tier_label,
+      rate: Number(row.rate),
       sessions: row.sessions,
-      dates: row.dates,
-      amountOwed: Number((row.sessions * student.rate).toFixed(2)),
-      paid: !!(payment && payment.paid),
-      paidDate: payment ? payment.paid_date : null,
-    };
-  });
+      amount: lineAmount,
+    });
+    entry.sessions += row.sessions;
+    entry.amountOwed = Number((entry.amountOwed + lineAmount).toFixed(2));
+    entry.dates.push(...row.dates);
+  }
+
+  const months = Array.from(monthsByKey.values()).map((m) => ({ ...m, dates: m.dates.sort() }));
 
   res.json({ student, months });
 });
