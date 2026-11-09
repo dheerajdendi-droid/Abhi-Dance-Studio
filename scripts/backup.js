@@ -6,7 +6,7 @@ const path = require("path");
 require("dotenv").config();
 const { Client } = require("pg");
 
-const TABLES = ["classes", "students", "settings", "attendance_records", "payments"];
+const TABLES = ["classes", "students", "settings", "attendance_records", "payments", "session_outgoings"];
 
 async function main() {
   const client = new Client({ connectionString: process.env.DATABASE_URL });

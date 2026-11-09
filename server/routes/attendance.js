@@ -1,4 +1,5 @@
 const express = require("express");
+const { asyncRoutes } = require("../middleware/asyncRoutes");
 const { pool } = require("../db");
 
 const router = express.Router();
@@ -29,6 +30,7 @@ router.post("/", async (req, res) => {
          WHEN 'junior' THEN settings.junior_rate
          WHEN 'intermediate' THEN settings.intermediate_rate
          WHEN 'senior' THEN settings.senior_rate
+         WHEN 'standard' THEN settings.standard_rate
          ELSE settings.advanced_rate
        END,
        s.level
@@ -65,6 +67,7 @@ router.post("/bulk-mark", async (req, res) => {
          WHEN 'junior' THEN settings.junior_rate
          WHEN 'intermediate' THEN settings.intermediate_rate
          WHEN 'senior' THEN settings.senior_rate
+         WHEN 'standard' THEN settings.standard_rate
          ELSE settings.advanced_rate
        END,
        s.level
@@ -93,4 +96,4 @@ router.post("/bulk-clear", async (req, res) => {
   res.json({ presentStudentIds: [] });
 });
 
-module.exports = router;
+module.exports = asyncRoutes(router);

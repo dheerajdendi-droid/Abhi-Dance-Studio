@@ -5,7 +5,7 @@ const fs = require("fs");
 require("dotenv").config();
 const { Client } = require("pg");
 
-const TABLES = ["classes", "students", "attendance_records", "payments"];
+const TABLES = ["classes", "students", "attendance_records", "payments", "session_outgoings"];
 
 async function main() {
   const [, , filePath, confirmFlag] = process.argv;
@@ -50,8 +50,10 @@ async function main() {
     if (settingsRows[0]) {
       const s = settingsRows[0];
       await client.query(
-        "UPDATE settings SET junior_rate = $1, senior_rate = $2, pin_hash = $3, updated_at = now() WHERE id = 1",
-        [s.junior_rate, s.senior_rate, s.pin_hash]
+        // advanced_rate / standard_rate are absent from backups taken before those
+        // tiers existed; COALESCE keeps the current value in that case.
+        "UPDATE settings SET junior_rate = $1, intermediate_rate = $2, senior_rate = $3, advanced_rate = COALESCE($4, advanced_rate), standard_rate = COALESCE($5, standard_rate), pin_hash = $6, updated_at = now() WHERE id = 1",
+        [s.junior_rate, s.intermediate_rate, s.senior_rate, s.advanced_rate ?? null, s.standard_rate ?? null, s.pin_hash]
       );
       console.log("  settings: restored");
     }

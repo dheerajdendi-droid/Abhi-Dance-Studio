@@ -1,4 +1,5 @@
 const express = require("express");
+const { asyncRoutes } = require("../middleware/asyncRoutes");
 const { pool } = require("../db");
 
 const router = express.Router();
@@ -9,8 +10,8 @@ function validateStudentInput(body, { partial = false } = {}) {
     if (!name || !name.trim()) return "Student name is required";
   }
   if (!partial || level !== undefined) {
-    if (level !== "junior" && level !== "intermediate" && level !== "senior" && level !== "advanced") {
-      return "Level must be junior, intermediate, senior, or advanced";
+    if (level !== "junior" && level !== "intermediate" && level !== "senior" && level !== "standard" && level !== "advanced") {
+      return "Level must be junior, intermediate, senior, standard, or advanced";
     }
   }
   if (parent_phone && !/^[+\d][\d\s()-]{5,20}$/.test(parent_phone)) {
@@ -28,6 +29,7 @@ router.get("/", async (req, res) => {
         WHEN 'junior' THEN settings.junior_rate
         WHEN 'intermediate' THEN settings.intermediate_rate
         WHEN 'senior' THEN settings.senior_rate
+        WHEN 'standard' THEN settings.standard_rate
         ELSE settings.advanced_rate
       END AS rate,
       c.name AS class_name, c.day_of_week AS class_day, c.time AS class_time
@@ -93,6 +95,7 @@ router.get("/:id/history", async (req, res) => {
         WHEN 'junior' THEN settings.junior_rate
         WHEN 'intermediate' THEN settings.intermediate_rate
         WHEN 'senior' THEN settings.senior_rate
+        WHEN 'standard' THEN settings.standard_rate
         ELSE settings.advanced_rate
       END AS rate
     FROM students s CROSS JOIN settings WHERE s.id = $1
@@ -158,4 +161,4 @@ router.get("/:id/history", async (req, res) => {
   res.json({ student, months });
 });
 
-module.exports = router;
+module.exports = asyncRoutes(router);
