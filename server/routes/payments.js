@@ -1,4 +1,5 @@
 const express = require("express");
+const { asyncRoutes } = require("../middleware/asyncRoutes");
 const { pool } = require("../db");
 
 const router = express.Router();
@@ -24,4 +25,4 @@ router.put("/:studentId/:month", async (req, res) => {
   res.json(rows[0]);
 });
 
-module.exports = router;
+module.exports = asyncRoutes(router);

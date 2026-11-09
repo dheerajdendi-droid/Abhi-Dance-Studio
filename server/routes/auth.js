@@ -1,4 +1,5 @@
 const express = require("express");
+const { asyncRoutes } = require("../middleware/asyncRoutes");
 const bcrypt = require("bcryptjs");
 const rateLimit = require("express-rate-limit");
 const { pool } = require("../db");
@@ -84,4 +85,4 @@ router.put("/pin", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-module.exports = router;
+module.exports = asyncRoutes(router);

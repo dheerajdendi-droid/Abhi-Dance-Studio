@@ -1,4 +1,5 @@
 const express = require("express");
+const { asyncRoutes } = require("../middleware/asyncRoutes");
 const { pool } = require("../db");
 
 const router = express.Router();
@@ -68,4 +69,4 @@ router.delete("/:id", async (req, res) => {
   res.status(204).end();
 });
 
-module.exports = router;
+module.exports = asyncRoutes(router);

@@ -1,9 +1,33 @@
+const REQUEST_TIMEOUT_MS = 15000;
+export const UNAVAILABLE_MESSAGE = "Can't reach the server right now. This is not a PIN problem.";
+
+function unavailableError(status) {
+  const err = new Error(UNAVAILABLE_MESSAGE);
+  err.status = status;
+  err.unavailable = true;
+  return err;
+}
+
 async function request(path, options = {}) {
-  const res = await fetch(`/api${path}`, {
-    credentials: "include",
-    headers: options.body ? { "Content-Type": "application/json" } : undefined,
-    ...options,
-  });
+  // Without a timeout, a hung server leaves the UI waiting forever.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let res;
+  try {
+    res = await fetch(`/api${path}`, {
+      credentials: "include",
+      headers: options.body ? { "Content-Type": "application/json" } : undefined,
+      ...options,
+      signal: controller.signal,
+    });
+  } catch {
+    // Network failure or timeout (abort).
+    throw unavailableError(0);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status >= 500) throw unavailableError(res.status);
 
   if (!res.ok) {
     let message = `Request failed: ${res.status}`;

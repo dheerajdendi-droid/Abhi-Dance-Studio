@@ -1,4 +1,5 @@
 const express = require("express");
+const { asyncRoutes } = require("../middleware/asyncRoutes");
 const { billingRows } = require("../lib/billing");
 
 const router = express.Router();
@@ -27,4 +28,4 @@ router.get("/:month", async (req, res) => {
   res.json(Array.from(groups.values()));
 });
 
-module.exports = router;
+module.exports = asyncRoutes(router);

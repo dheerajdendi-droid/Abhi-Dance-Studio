@@ -30,7 +30,7 @@ export default function Lock({ pinSet }) {
   useEffect(() => {
     if (pinSet && pin.length === PIN_LENGTH) {
       login.mutate(pin, {
-        onError: (err) => triggerError(err.message || "Incorrect PIN"),
+        onError: (err) => triggerError(err.unavailable ? err.message : err.message || "Incorrect PIN"),
         onSuccess: () => setError(""),
       });
     }

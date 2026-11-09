@@ -58,8 +58,20 @@ if (isProd) {
   });
 }
 
+// Connection failures and timeouts mean the database is unreachable, which is
+// not the user's fault (and nothing to do with their PIN). Report it as 503
+// so the client can show a "server unavailable" message.
+function isDatabaseUnavailable(err) {
+  const codes = ["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN", "57014", "57P01", "57P03"];
+  if (codes.includes(err.code) || (typeof err.code === "string" && err.code.startsWith("08"))) return true;
+  return /timeout exceeded when trying to connect|Connection terminated|connection timeout/i.test(err.message || "");
+}
+
 app.use((err, req, res, next) => {
   console.error(err);
+  if (isDatabaseUnavailable(err)) {
+    return res.status(503).json({ error: "Database unavailable", code: "DB_UNAVAILABLE" });
+  }
   res.status(err.status || 500).json({ error: err.message || "Internal server error" });
 });
 

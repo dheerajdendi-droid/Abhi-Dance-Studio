@@ -22,10 +22,30 @@ const TITLES = {
 export default function App() {
   const location = useLocation();
   const title = TITLES[location.pathname] || "Abhi's Dance Studio";
-  const { data, isLoading } = useAuthStatus();
+  const { data, isLoading, isError, refetch, isFetching } = useAuthStatus();
 
   if (isLoading) {
     return <div className="min-h-screen bg-plum-900" />;
+  }
+
+  // If the server/database can't be reached, say so — never fall through to
+  // the "set up a PIN" screen, which would look like a PIN problem.
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-plum-900 flex flex-col items-center justify-center px-6 text-center text-white">
+        <h1 className="font-display text-2xl font-semibold">Can't reach the server</h1>
+        <p className="mt-2 text-plum-100 max-w-xs">
+          This is not a PIN problem. The app's server or database isn't responding. Please try again shortly.
+        </p>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="mt-6 min-h-[44px] px-6 rounded-xl bg-white text-plum-800 font-medium"
+        >
+          {isFetching ? "Trying…" : "Try again"}
+        </button>
+      </div>
+    );
   }
 
   if (!data || !data.authenticated) {
